@@ -1,0 +1,18 @@
+[project]
+name = "mathfin-modeling-projects"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastparquet>=2024.11.0",
+    "matplotlib>=3.10.0",
+    "pandas>=2.2.3",
+    "pip>=25.0.1",
+    "pyarrow>=19.0.0",
+    "pydantic>=2.10.6",
+    "pyyaml>=6.0.2",
+    "seaborn>=0.13.2",
+    "torch>=2.6.0",
+]
+
