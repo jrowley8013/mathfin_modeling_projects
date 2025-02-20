@@ -271,14 +271,30 @@ def abs_softmax(x):
     return torch.sign(x) * x_exp / x_exp_sum
 
 
+class ConditionalFlatten(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.dim() == 3:
+            # For a 3D input (e.g., [20, 16, 10]), flatten from dimension 1
+            # so the output becomes [20, 16*10] => [20, 160].
+            return x.flatten(start_dim=1)
+        elif x.dim() == 2:
+            # For a 2D input (e.g., [20, 16]), flatten from dimension 0
+            # so the output becomes [20*16] => [320].
+            return x.flatten(start_dim=0)
+        else:
+            raise ValueError(f"Expected input tensor to be 2D or 3D, but got shape {x.shape}")
+
+
 class Generator(nn.Module):
     def __init__(self, d_flatten, vocab):
         super(Generator, self).__init__()
-        self.flatten = nn.Flatten(start_dim=1)
+        # Replacing nn.Flatten(start_dim=1) with our custom conditional flattening module.
+        self.flatten = ConditionalFlatten()
         self.proj = nn.Linear(d_flatten, vocab)
 
     def forward(self, x):
-        # flatten the input then project it to the vocab size
+        # Flatten the input using ConditionalFlatten,
+        # then project it and apply the abs_softmax function.
         proj_x = self.proj(self.flatten(x))
         return abs_softmax(proj_x)
 
