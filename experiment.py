@@ -105,7 +105,7 @@ class EarlyStopping:
         """Call the early stopping class."""
         if val_score < running_max:
             self.counter += 1
-            print(self.counter)
+            # print(self.counter)
             if self.counter >= self.patience:
                 return True
         else:
@@ -195,10 +195,11 @@ class PortfolioModelingExperiment:
                 step, model_size=self.training_config.d_model, factor=10.0, warmup=80
             ),
         )
-        running_max = -np.Inf
+        running_max = -np.inf
         if self.early_stopping_patience:
             early_stopping = EarlyStopping(patience=self.early_stopping_patience)
         for epoch_idx in range(self.training_config.epochs):
+            print(f"Epoch {epoch_idx} of {self.training_config.epochs}", end="")
             epoch_training_metric = self.run_epoch(
                 optimizer=optimizer, validate=validate
             )
@@ -299,7 +300,16 @@ class PortfolioModelingExperiment:
             with torch.no_grad():
                 for i, data in enumerate(self.get_validation_data):
                     batch = Batch(df_batch=data.transpose(1, 2))
-                    out = self.model.forward(batch.srctgt)[0]
+                    if self.training_config.model_type == "lstm":
+                        out = self.model.forward(batch.srctgt)[0]
+                    elif self.training_config.model_type == "transformer":
+                        out = self.model.forward(
+                            batch.src,
+                            batch.tgt,
+                            batch.src_mask,
+                            batch.tgt_mask,
+                        )[0]
+                    # out = self.model.forward(batch.srctgt)[0]
                     weights = self.model.generator(out)
                     port_return = (weights * batch.last_return).sum(dim=1).cpu()
                     rets.append(port_return.numpy().item())
@@ -313,7 +323,7 @@ class PortfolioModelingExperiment:
         print(
             (
                 (
-                    "Loss: %6.5f | Sec: %7.1f | Tokens / Sec: %7.1f"
+                    " | Loss: %6.5f | Sec: %7.1f | Tokens / Sec: %7.1f"
                     + " | Learning Rate: %6.1e"
                 )
                 % (epoch_avg_loss, elapsed, tokens / elapsed, lr)
