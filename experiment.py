@@ -309,7 +309,6 @@ class PortfolioModelingExperiment:
                             batch.src_mask,
                             batch.tgt_mask,
                         )[0]
-                    # out = self.model.forward(batch.srctgt)[0]
                     weights = self.model.generator(out)
                     port_return = (weights * batch.last_return).sum(dim=1).cpu()
                     rets.append(port_return.numpy().item())
