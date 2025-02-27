@@ -96,16 +96,18 @@ class TrainingConfig:
 class EarlyStopping:
     """Early stopping class."""
 
-    def __init__(self, patience: int = 20):
+    def __init__(self, patience: int = 20, verbose: bool = False):
         """Initialize the early stopping class."""
         self.patience = patience
         self.counter = 0
+        self.verbose = verbose
 
     def __call__(self, val_score: float, running_max: float) -> bool:
         """Call the early stopping class."""
         if val_score < running_max:
             self.counter += 1
-            # print(self.counter)
+            if self.verbose:
+                print(f"Early stopping counter: {self.counter}/{self.patience}")
             if self.counter >= self.patience:
                 return True
         else:
@@ -124,6 +126,7 @@ class PortfolioModelingExperiment:
     training_data: pd.DataFrame
     validation_data: pd.DataFrame
     early_stopping_patience: Optional[int] = None
+    verbose: bool = False
 
     @property
     def get_training_data(self) -> DataLoader:
@@ -197,7 +200,10 @@ class PortfolioModelingExperiment:
         )
         running_max = -np.inf
         if self.early_stopping_patience:
-            early_stopping = EarlyStopping(patience=self.early_stopping_patience)
+            early_stopping = EarlyStopping(
+                patience=self.early_stopping_patience, 
+                verbose=self.verbose
+            )
         for epoch_idx in range(self.training_config.epochs):
             print(f"Epoch {epoch_idx} of {self.training_config.epochs}", end="")
             epoch_training_metric = self.run_epoch(
